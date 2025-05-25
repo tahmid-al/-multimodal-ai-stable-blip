@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multimodal AI - BLIP + Stable Diffusion</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background: #f2f2f2; }
+        h2 { color: #333; }
+        form { margin-bottom: 40px; }
+        label { display: block; margin-top: 10px; }
+        input[type="file"], input[type="text"] { margin: 10px 0; }
+        button { padding: 10px 20px; margin-top: 10px; }
+        img { max-width: 400px; margin-top: 20px; display: block; }
+        #captionResult, #genImage { font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>🖼️ Multimodal AI Web Interface</h2>
+
+    <form id="captionForm" enctype="multipart/form-data">
+        <h3>Image to Caption (BLIP)</h3>
+        <input type="file" id="imageInput" name="image" accept="image/*" required>
+        <button type="submit">Get Caption</button>
+        <div id="captionResult"></div>
+    </form>
+
+    <form id="generateForm">
+        <h3>Text to Image (Stable Diffusion)</h3>
+        <input type="text" id="promptInput" placeholder="Enter prompt..." required>
+        <button type="submit">Generate Image</button>
+        <div id="genImage"></div>
+    </form>
+
+    <script>
+        const captionForm = document.getElementById('captionForm');
+        const captionResult = document.getElementById('captionResult');
+
+        captionForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('imageInput');
+            formData.append("image", fileInput.files[0]);
+
+            const response = await fetch('/caption-image', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            captionResult.innerText = '📣 Caption: ' + result.caption;
+        };
+
+        const genForm = document.getElementById('generateForm');
+        const genImage = document.getElementById('genImage');
+
+        genForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const prompt = document.getElementById('promptInput').value;
+
+            genImage.innerHTML = 'Generating image...';
+
+            const response = await fetch('/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt })
+            });
+            const result = await response.json();
+            genImage.innerHTML = '<img src="data:image/png;base64,' + result.image + '" />';
+        };
+    </script>
+</body>
+</html>
